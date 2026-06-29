@@ -29,14 +29,17 @@ export default function LoadingScreen({ onComplete, onEnterClicked }: LoadingScr
   }, []);
 
   const handleEnter = () => {
-    onEnterClicked();
-    setIsExiting(true);
-    setTimeout(onComplete, 1000);
+    try {
+      onEnterClicked();
+    } catch (e) {
+      console.warn("Autoplay block bypass error:", e);
+    }
+    onComplete(); // انتقال مباشر
   };
 
   return (
     <AnimatePresence>
-      {!isExiting && (
+      {true && (
         <motion.div
           className="fixed inset-0 z-[100] flex flex-col items-center justify-center"
           style={{
@@ -51,7 +54,7 @@ export default function LoadingScreen({ onComplete, onEnterClicked }: LoadingScr
         >
           {/* Decorative background circles */}
           <motion.div
-            className="absolute w-[300px] h-[300px] rounded-full"
+            className="absolute w-[300px] h-[300px] rounded-full pointer-events-none"
             style={{
               background: "radial-gradient(circle, rgba(201, 169, 110, 0.06) 0%, transparent 70%)",
             }}
@@ -97,7 +100,7 @@ export default function LoadingScreen({ onComplete, onEnterClicked }: LoadingScr
           </motion.p>
 
           {/* Progress bar or Enter Button */}
-          <div className="h-16 flex flex-col items-center justify-center mt-6">
+          <div className="h-16 flex flex-col items-center justify-center mt-6 relative z-50">
             {!isLoaded ? (
               <div className="flex flex-col items-center">
                 <motion.div
@@ -147,7 +150,7 @@ export default function LoadingScreen({ onComplete, onEnterClicked }: LoadingScr
                 animate={{ opacity: 1, scale: 1 }}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="px-8 py-3 rounded-full text-base font-[family-name:var(--font-arabic)] bg-gradient-to-l from-[var(--color-accent-gold-dark)] to-[var(--color-accent-gold-light)] text-[var(--color-bg-primary)] shadow-[var(--shadow-button)] font-semibold cursor-pointer border border-[rgba(255,255,255,0.1)] hover:shadow-lg transition-all duration-300"
+                className="px-8 py-3 rounded-full text-base font-[family-name:var(--font-arabic)] bg-gradient-to-l from-[var(--color-accent-gold-dark)] to-[var(--color-accent-gold-light)] text-[var(--color-bg-primary)] shadow-[var(--shadow-button)] font-semibold cursor-pointer border border-[rgba(255,255,255,0.1)] hover:shadow-lg transition-all duration-300 relative z-50"
               >
                 دخول الدعوة
               </motion.button>

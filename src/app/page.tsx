@@ -112,7 +112,7 @@ export default function HomePage() {
 
   return (
     <main
-      className="relative"
+      className={`relative ${isLoading ? "h-screen overflow-hidden" : ""}`}
       onClick={handleFirstInteraction}
       role="main"
     >
