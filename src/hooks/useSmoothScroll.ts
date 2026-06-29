@@ -29,7 +29,7 @@ export function useSmoothScroll() {
     };
   }, []);
 
-  const scrollTo = (target: string | number) => {
+  const scrollTo = (target: string | number | HTMLElement) => {
     lenisRef.current?.scrollTo(target, { duration: 1.5 });
   };
 

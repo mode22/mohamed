@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
+import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
 import LoadingScreen from "@/components/LoadingScreen";
 import HeroSection from "@/components/HeroSection";
@@ -40,66 +41,72 @@ export default function HomePage() {
     if (isLoading) return;
 
     const sections = ["hero", "invitation", "welcome", "details", "countdown", "thankyou"];
-    let currentIdx = 0;
     let autoScrollTimer: NodeJS.Timeout;
-    let userInteracted = false;
     let inactivityTimeout: NodeJS.Timeout;
+    let isAutoScrolling = false;
 
-    const startAutoScroll = () => {
-      autoScrollTimer = setInterval(() => {
-        if (userInteracted) return;
-        currentIdx = (currentIdx + 1) % sections.length;
-        const nextSec = document.getElementById(sections[currentIdx]);
-        if (nextSec) {
-          nextSec.scrollIntoView({ behavior: "smooth" });
+    const getClosestSectionIdx = () => {
+      let closestIdx = 0;
+      let minDistance = Infinity;
+      sections.forEach((id, idx) => {
+        const el = document.getElementById(id);
+        if (el) {
+          const dist = Math.abs(el.getBoundingClientRect().top);
+          if (dist < minDistance) {
+            minDistance = dist;
+            closestIdx = idx;
+          }
         }
-      }, 9000); // Step to the next section every 9 seconds
+      });
+      return closestIdx;
+    };
+
+    const performAutoScroll = () => {
+      autoScrollTimer = setInterval(() => {
+        if (isAutoScrolling) return;
+
+        const currentIdx = getClosestSectionIdx();
+        const nextIdx = (currentIdx + 1) % sections.length;
+        const nextSec = document.getElementById(sections[nextIdx]);
+
+        if (nextSec) {
+          isAutoScrolling = true;
+          scrollTo(nextSec);
+          // Allow manual scrolling to override after animation finishes
+          setTimeout(() => {
+            isAutoScrolling = false;
+          }, 1500);
+        }
+      }, 3500); // الانتقال التلقائي كل 3.5 ثانية (تقليل الوقت للنصف)
     };
 
     const handleUserInteraction = () => {
-      userInteracted = true;
+      // إيقاف التمرير التلقائي فور قيام المستخدم بالتمرير اليدوي
       clearInterval(autoScrollTimer);
-      // Resume auto scroll after 15 seconds of inactivity
       clearTimeout(inactivityTimeout);
+
+      // استئناف التمرير التلقائي بعد 6 ثوانٍ من التوقف أو السكون
       inactivityTimeout = setTimeout(() => {
-        userInteracted = false;
-        // Reset current index to closest section
-        let closestIdx = 0;
-        let minDistance = Infinity;
-        sections.forEach((id, idx) => {
-          const el = document.getElementById(id);
-          if (el) {
-            const dist = Math.abs(el.getBoundingClientRect().top);
-            if (dist < minDistance) {
-              minDistance = dist;
-              closestIdx = idx;
-            }
-          }
-        });
-        currentIdx = closestIdx;
-        startAutoScroll();
-      }, 15000);
+        performAutoScroll();
+      }, 6000);
     };
 
-    // Listen to scroll, touches and wheel to pause auto-scrolling
+    // إعداد مستمعي الأحداث
     window.addEventListener("scroll", handleUserInteraction, { passive: true });
     window.addEventListener("touchstart", handleUserInteraction, { passive: true });
     window.addEventListener("wheel", handleUserInteraction, { passive: true });
 
-    // Start auto scrolling once loading finishes
-    const initialDelay = setTimeout(() => {
-      startAutoScroll();
-    }, 6000);
+    // تشغيل التمرير التلقائي فور فتح الصفحة
+    performAutoScroll();
 
     return () => {
       clearInterval(autoScrollTimer);
       clearTimeout(inactivityTimeout);
-      clearTimeout(initialDelay);
       window.removeEventListener("scroll", handleUserInteraction);
       window.removeEventListener("touchstart", handleUserInteraction);
       window.removeEventListener("wheel", handleUserInteraction);
     };
-  }, [isLoading]);
+  }, [isLoading, scrollTo, music]);
 
 
 
@@ -110,10 +117,60 @@ export default function HomePage() {
       role="main"
     >
       {/* Loading Screen */}
-      {isLoading && <LoadingScreen onComplete={handleLoadingComplete} />}
+      {isLoading && (
+        <LoadingScreen 
+          onComplete={handleLoadingComplete} 
+          onEnterClicked={() => music.fadeIn()} 
+        />
+      )}
 
       {/* Floating Particles Background */}
       {!isLoading && <FloatingParticles count={15} />}
+
+      {/* Floating Music Controller */}
+      {!isLoading && (
+        <motion.button
+          onClick={music.toggle}
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 1, duration: 0.5 }}
+          className="fixed top-6 right-6 z-50 w-12 h-12 rounded-full glass-strong flex items-center justify-center cursor-pointer shadow-lg hover:scale-105 active:scale-95 transition-all duration-300 border border-[rgba(255,255,255,0.15)]"
+          aria-label="تشغيل / إيقاف الموسيقى"
+        >
+          {music.isPlaying ? (
+            <motion.svg
+              animate={{ rotate: 360 }}
+              transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="var(--color-accent-gold)"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <path d="M12 18V6" />
+              <path d="M16 12V6" />
+              <path d="M8 12V6" />
+            </motion.svg>
+          ) : (
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="var(--color-text-muted)"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polygon points="5 3 19 12 5 21 5 3" />
+            </svg>
+          )}
+        </motion.button>
+      )}
 
       {/* Main Content */}
       <div className={`relative z-10 ${isLoading ? "opacity-0" : "opacity-100"} transition-opacity duration-1000`}>

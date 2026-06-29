@@ -22,8 +22,19 @@ export function useMusic(src: string): MusicControls {
       const audio = new Audio(src);
       audio.loop = true;
       audio.volume = 0;
+      audio.autoplay = true;
       audio.preload = "auto";
       audioRef.current = audio;
+
+      // محاولة تشغيل الصوت فور التهيئة
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.then(() => {
+          setIsPlaying(true);
+        }).catch(() => {
+          // المتصفح يمنع التشغيل التلقائي قبل أي تفاعل، سنحتفظ بها لتعمل مع أول مستمع
+        });
+      }
 
       return () => {
         audio.pause();

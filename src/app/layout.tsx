@@ -63,12 +63,15 @@ export default function RootLayout({
       lang="ar"
       dir="rtl"
       className={`${tajawal.variable} ${arefRuqaa.variable} ${cormorant.variable} ${playfair.variable} antialiased`}
+      suppressHydrationWarning={true}
     >
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
-      <body className="min-h-screen font-[family-name:var(--font-arabic)]">
+      <body className="min-h-screen font-[family-name:var(--font-arabic)]" suppressHydrationWarning={true}>
+        {/* خدعة تقنية للسماح بتجاوز قيود التشغيل التلقائي للمتصفح */}
+        <iframe src="about:blank" allow="autoplay" className="hidden" style={{ display: 'none' }} />
         {children}
       </body>
     </html>

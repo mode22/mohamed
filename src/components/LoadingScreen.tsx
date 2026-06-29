@@ -5,29 +5,34 @@ import { useState, useEffect } from "react";
 
 interface LoadingScreenProps {
   onComplete: () => void;
+  onEnterClicked: () => void;
 }
 
-export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
+export default function LoadingScreen({ onComplete, onEnterClicked }: LoadingScreenProps) {
   const [progress, setProgress] = useState(0);
   const [isExiting, setIsExiting] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) {
           clearInterval(interval);
-          setTimeout(() => {
-            setIsExiting(true);
-            setTimeout(onComplete, 1000);
-          }, 500);
+          setIsLoaded(true);
           return 100;
         }
-        return prev + Math.random() * 8 + 2;
+        return prev + Math.random() * 12 + 4;
       });
-    }, 80);
+    }, 60);
 
     return () => clearInterval(interval);
-  }, [onComplete]);
+  }, []);
+
+  const handleEnter = () => {
+    onEnterClicked();
+    setIsExiting(true);
+    setTimeout(onComplete, 1000);
+  };
 
   return (
     <AnimatePresence>
@@ -91,47 +96,63 @@ export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
             حفل زفاف
           </motion.p>
 
-          {/* Progress bar */}
-          <motion.div
-            className="w-48 h-[2px] bg-[rgba(255,255,255,0.1)] rounded-full overflow-hidden"
-            initial={{ opacity: 0, scaleX: 0 }}
-            animate={{ opacity: 1, scaleX: 1 }}
-            transition={{ duration: 0.6, delay: 1 }}
-          >
-            <motion.div
-              className="h-full rounded-full"
-              style={{
-                background: "linear-gradient(90deg, var(--color-accent-gold-dark), var(--color-accent-gold-light))",
-                width: `${Math.min(progress, 100)}%`,
-              }}
-              transition={{ duration: 0.2 }}
-            />
-          </motion.div>
+          {/* Progress bar or Enter Button */}
+          <div className="h-16 flex flex-col items-center justify-center mt-6">
+            {!isLoaded ? (
+              <div className="flex flex-col items-center">
+                <motion.div
+                  className="w-48 h-[2px] bg-[rgba(255,255,255,0.1)] rounded-full overflow-hidden"
+                  initial={{ opacity: 0, scaleX: 0 }}
+                  animate={{ opacity: 1, scaleX: 1 }}
+                  transition={{ duration: 0.6, delay: 0.2 }}
+                >
+                  <motion.div
+                    className="h-full rounded-full"
+                    style={{
+                      background: "linear-gradient(90deg, var(--color-accent-gold-dark), var(--color-accent-gold-light))",
+                      width: `${Math.min(progress, 100)}%`,
+                    }}
+                    transition={{ duration: 0.2 }}
+                  />
+                </motion.div>
 
-          {/* Loading dots */}
-          <motion.div
-            className="flex gap-1.5 mt-6"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1.2 }}
-          >
-            {[0, 1, 2].map((i) => (
-              <motion.div
-                key={i}
-                className="w-1.5 h-1.5 rounded-full bg-[var(--color-accent-gold)]"
-                animate={{
-                  opacity: [0.3, 1, 0.3],
-                  scale: [0.8, 1.2, 0.8],
-                }}
-                transition={{
-                  duration: 1.2,
-                  delay: i * 0.2,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-              />
-            ))}
-          </motion.div>
+                {/* Loading dots */}
+                <motion.div
+                  className="flex gap-1.5 mt-6"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                >
+                  {[0, 1, 2].map((i) => (
+                    <motion.div
+                      key={i}
+                      className="w-1.5 h-1.5 rounded-full bg-[var(--color-accent-gold)]"
+                      animate={{
+                        opacity: [0.3, 1, 0.3],
+                        scale: [0.8, 1.2, 0.8],
+                      }}
+                      transition={{
+                        duration: 1.2,
+                        delay: i * 0.2,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                      }}
+                    />
+                  ))}
+                </motion.div>
+              </div>
+            ) : (
+              <motion.button
+                onClick={handleEnter}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="px-8 py-3 rounded-full text-base font-[family-name:var(--font-arabic)] bg-gradient-to-l from-[var(--color-accent-gold-dark)] to-[var(--color-accent-gold-light)] text-[var(--color-bg-primary)] shadow-[var(--shadow-button)] font-semibold cursor-pointer border border-[rgba(255,255,255,0.1)] hover:shadow-lg transition-all duration-300"
+              >
+                دخول الدعوة
+              </motion.button>
+            )}
+          </div>
         </motion.div>
       )}
     </AnimatePresence>
